@@ -154,7 +154,8 @@ const EMPTY_PLAN_ERROR: RequestError = RequestError::EmptyPlan;
 pub(crate) async fn execute<QueryFut, ResT>(
     policy: &dyn SpeculativeExecutionPolicy,
     context: &Context,
-    mut query_runner_generator: impl FnMut(bool) -> QueryFut,
+    // mut query_runner_generator: impl FnMut(bool) -> QueryFut,
+    query_runner_generator: impl Fn(bool) -> QueryFut,  // ← Remove 'mut' and use 'Fn'
 ) -> Result<(ResT, Coordinator), RequestError>
 where
     QueryFut: Future<Output = Option<Result<(ResT, Coordinator), RequestError>>>,
@@ -245,10 +246,12 @@ mod tests {
 
         let generator = {
             // Index of the fiber, 0 for first execution.
-            let mut counter = 0;
+            // let mut counter = 0;
+            let counter = Arc::new(AtomicUsize::new(0));  // Thread-safe counter
             move |_first: bool| {
                 let future = {
-                    let fiber_idx = counter;
+                    // let fiber_idx = counter;
+                    let fiber_idx = counter.fetch_add(1, Ordering::SeqCst);
                     async move {
                         match fiber_idx.cmp(&4) {
                             std::cmp::Ordering::Less => {
