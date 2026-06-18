@@ -45,6 +45,8 @@ from test.pylib.util import LogPrefixAdapter, get_configured_modes
 
 launch_time = time.monotonic()
 
+# NOTE: just noop thing for having a new commit
+
 class ThreadsCalculator:
     """
     The ThreadsCalculator class calculates the number of jobs that can be run concurrently based on system
